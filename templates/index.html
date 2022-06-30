@@ -1,15 +1,15 @@
 <!-- 使用模板继承机制简化页面模板 -->
 {% extends "base.html" %} 
+<!-- Flask-Bootstrap 扩展提供了一个高层级的辅助函数，可以使用 Bootstrap 预定义的表单样式渲染整个 Flask-WTF 表单，而这些操作只需一次调用即可完成。 -->
+{% import "bootstrap/wtf.html" as wtf %} 
 
 {% block title %}Flasky{% endblock %}
 
 {% block page_content %} 
-<div class="container">     
-    <div class="page-header">         
-        <h1>Hello, World!</h1>     
-    </div> 
+  
+<div class="page-header">         
+    <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>     
 </div> 
-<!--使用 Flask-Moment 渲染时间戳-->
-<p>The local date and time is {{ moment(current_time).format('LLL') }}.</p> 
-<p>That was {{ moment(current_time).fromNow(refresh=True) }}</p>
+{{ wtf.quick_form(form) }}
+
 {% endblock %}
