@@ -36,3 +36,9 @@
     {% endblock %} 
 </div> 
 {% endblock %}
+
+<!--在此引入Moment.js 库-->
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
+{% endblock %}
