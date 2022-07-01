@@ -1,3 +1,4 @@
+"""
 from datetime import datetime
 from flask import render_template,session, redirect, url_for
 
@@ -26,3 +27,12 @@ def index():
         form=form,name=session.get('name'),
         known=session.get('known', False),
         current_time=datetime.utcnow())
+"""
+
+from flask import render_template
+
+from . import main
+
+@main.route('/')
+def index():
+    return render_template('index.html')

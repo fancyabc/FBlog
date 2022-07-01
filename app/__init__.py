@@ -6,6 +6,8 @@ from flask_bootstrap import Bootstrap
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+
 from config import config
 
 """创建扩展类时没有向构造函数传入参数，因此扩展并未真正初始化。"""
@@ -13,6 +15,8 @@ bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login' # LoginManager 对象的 login_view 属性用于设置登录页面的端点。
 
 """create_app() 函数是应用的工厂函数，接受一个参数，是应用使用的配置名。"""
 def create_app(config_name):
@@ -24,6 +28,7 @@ def create_app(config_name):
     mail.init_app(app)
     moment.init_app(app)
     db.init_app(app)
+    login_manager.init_app(app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
