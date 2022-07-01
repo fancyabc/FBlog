@@ -9,6 +9,7 @@ python-dotenv = "*"
 flask-bootstrap = "*"
 flask-wtf = "*"
 flask-moment = "*"
+flask-login = "*"
 
 [dev-packages]
 
