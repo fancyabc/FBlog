@@ -1,11 +1,12 @@
 from crypt import methods
 import email
 from flask import render_template, redirect, request, url_for, flash
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 from ..models import User
 from .forms import LoginForm, RegistrationForm
 from .. import db
+from ..email import send_email
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -41,6 +42,51 @@ def register():
                     password=form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('You can login now.')
-        return redirect(url_for('auth.login'))
+        token = user.generate_confirmation_token()
+        send_email(user.email, 'Comfirm Your Account',
+                    'auth/email/confirm',user=user, token=token) # 发送确认邮件
+        flash('A confirmation email has been sent to you by email.')
+        return redirect(url_for('main.index'))
     return render_template('auth/register.html', form=form)
+
+
+'''用户点击确认邮件中的链接后，要先登录，然后才能执行这个视图函数。'''
+@auth.route('/confirm/<token>')
+@login_required
+def confirm(token):
+    if current_user.confirmed:
+        return redirect(url_for('main.index'))
+    if current_user.confirm(token): # token 验证成功
+        db.session.commit()
+        flash('You have confirmed your account. Thanks!')
+    else:
+        flash('The confirmation link is invalid or has expired.')     
+    return redirect(url_for('main.index'))
+
+
+'''使用 before_app_request 处理程序过滤未确认的账户'''
+@auth.before_app_request
+def before_request():
+    if current_user.is_authenticated \
+            and not current_user.confirmed \
+            and request.blueprint != 'auth' \
+            and request.endpoint != 'static':
+        return redirect(url_for('auth.unconfirmed'))
+
+
+@auth.route('/unconfirmed') 
+def unconfirmed():     
+    if current_user.is_anonymous or current_user.confirmed:     # 匿名登录或者已经验证的用户，去首页    
+        return redirect(url_for('main.index'))     
+    return render_template('auth/unconfirmed.html') # 否则显示未验证页面，然后可以选择点击发送验证邮件
+
+
+'''重新发送账户确认邮件'''
+@auth.route('/confirm') 
+@login_required # 需要在登录状态下
+def resend_confirmation():     
+    token = current_user.generate_confirmation_token()     
+    send_email(current_user.email, 'Confirm Your Account',                
+                'auth/email/confirm', user=current_user, token=token)     
+    flash('A new confirmation email has been sent to you by email.')     
+    return redirect(url_for('main.index'))

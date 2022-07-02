@@ -11,6 +11,7 @@ flask-wtf = "*"
 flask-moment = "*"
 flask-login = "*"
 email-validator = "*"
+authlib = "*"
 
 [dev-packages]
 
