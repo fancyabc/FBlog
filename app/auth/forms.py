@@ -1,3 +1,4 @@
+import email
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, Regexp, EqualTo
@@ -40,6 +41,18 @@ class RegistrationForm(FlaskForm):
 '''修改密码'''
 class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('Old password', validators=[DataRequired()])
+    password = PasswordField('New password', validators=[
+                            DataRequired(), EqualTo('password2', message='Passwords must match')])
+    password2 = PasswordField('Confirm password', validators=[DataRequired()])
+    submit = SubmitField('Update Password')
+
+
+class ResetPasswordRequest(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Length(1,64),Email()])
+    submit = SubmitField('Reset Password')
+
+
+class ResetPasswordForm(FlaskForm):
     password = PasswordField('New password', validators=[
                             DataRequired(), EqualTo('password2', message='Passwords must match')])
     password2 = PasswordField('Confirm password', validators=[DataRequired()])

@@ -1,10 +1,11 @@
 from crypt import methods
 import email
+from lib2to3.pgen2 import token
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 from ..models import User
-from .forms import LoginForm, RegistrationForm, ChangePasswordForm
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm, ResetPasswordRequest, ResetPasswordForm
 from .. import db
 from ..email import send_email
 
@@ -106,3 +107,38 @@ def change_password():
         else:
             flash('Invalid password')
     return render_template('auth/change_password.html', form=form)
+
+
+'''为避免用户忘记密码后无法登入，应用可以提供重设密码功能。为了安全起见，
+有必要使用令牌，类似于确认账户时用到的。用户请求重设密码后，应用向用户
+注册时提供的电子邮件地址发送一封包含重设令牌的邮件。用户点击邮件中的链接，
+令牌通过验证后，显示一个用于输入新密码的表单。'''
+@auth.route('/reset', methods=['GET', 'POST'])
+def reset_password_request():
+    if not current_user.is_anonymous:
+        return redirect(url_for('main.index'))
+    form = ResetPasswordRequest()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        if user:    # 确有其人
+            token = user.generate_reset_token() 
+            send_email(user.email, 'Reset Your Password',                
+                'auth/email/reset_password', user=user, token=token)     
+            flash('An email with instructions to reset your password has been sent to you by email.')     
+            return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password.html', form=form)
+
+
+@auth.route('/reset/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if not current_user.is_anonymous:
+        return redirect(url_for('main.index'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        if User.reset_password(token, form.password.data):
+            db.session.commit()
+            flash('Your password has been updated.')
+            return redirect(url_for('auth.login'))
+        else:
+            return redirect(url_for('main.index'))
+    return render_template('auth/reset_password.html', form=form)

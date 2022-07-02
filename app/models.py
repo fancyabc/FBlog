@@ -64,3 +64,24 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
         self.confirmed = True
         db.session.add(self)
         return True
+
+    def generate_reset_token(self, **kwargs):
+        header = {'alg':'HS256'}
+        key = current_app.config['SECRET_KEY']
+        data = {'reset':self.id}
+        data.update(**kwargs)
+        return jwt.encode(header=header, payload=data,key=key)
+
+    @staticmethod
+    def reset_password(token, new_password):
+        key = current_app.config['SECRET_KEY']
+        try:
+            data = jwt.decode(token, key)
+        except JoseError:
+            return False
+        user = User.query.get(data.get('reset'))
+        if user is None:
+            return False
+        user.password = new_password
+        db.session.add(user)
+        return True
