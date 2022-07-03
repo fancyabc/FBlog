@@ -12,12 +12,66 @@ from . import login_manager
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+'''应用中的各项权限'''
+class Permission:
+    FOLLOW = 1
+    COMMENT = 2
+    WRITE = 4
+    MODERATE = 8
+    ADMIN = 16
+
+
 class Role(db.Model):     
     __tablename__ = 'roles'     
     id = db.Column(db.Integer, primary_key=True)     
     name = db.Column(db.String(64), unique=True)  
-    users = db.relationship('User', backref='role')    
+    users = db.relationship('User', backref='role', lazy='dynamic') 
+    default = db.Column(db.Boolean, default=False, index=True) # 默认角色是注册新用户时赋予用户的角色。因为应用将在 roles 表中搜索默认角色，所以我们为这一列设置了索引，提升搜索的速度。
+    permissions = db.Column(db.Integer)
     
+    def __init__(self, **kwargs):
+        super(Role, self).__init__(**kwargs)
+        if self.permissions is None:
+            self.permissions = 0
+    
+    '''权限管理'''
+    def add_permissions(self, perm):
+        if not self.has_permissions(perm):
+            self.permissions += perm
+    
+    def remove_permissions(self, perm):
+        if not self.has_permissions(perm):
+            self.permissions -= perm
+
+    def reset_permissions(self):
+        self.permissions = 0
+
+    def has_permissions(self, perm): # 检 查组合权限是否包含指定的单独权限
+        return self.permissions & perm == perm
+
+    '''在数据库中创建角色'''
+    @staticmethod
+    def insert_roles():
+        roles = {
+            'User': [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE],
+            'Moderator': [Permission.FOLLOW, Permission.COMMENT,
+                        Permission.WRITE, Permission.MODERATE],
+            'Administrator': [Permission.FOLLOW, Permission.COMMENT,
+                        Permission.WRITE, Permission.MODERATE, Permission.ADMIN],
+        }
+        default_role = 'User'
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None: # 没有这个角色时候再创建
+                role = Role(name=r)
+            role.reset_permissions()
+            for perm in roles[r]:
+                role.add_permission(perm)
+            role.default = (role.name == default_role)
+            db.session.add(role)
+        db.session.commit()
+
     def __repr__(self):         
         return '<Role %r>' % self.name  
         
