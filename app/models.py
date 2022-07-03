@@ -2,7 +2,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from authlib.jose import jwt, JoseError # 生成用于验证的token
-from flask import current_app
+from flask import current_app, session
 
 from . import db
 from . import login_manager
@@ -84,4 +84,31 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
             return False
         user.password = new_password
         db.session.add(user)
+        return True
+
+    def generate_change_email_token(self, new_email):
+        header = {'alg':'HS256'}
+        key = current_app.config['SECRET_KEY']
+        data = {'change_email':self.id, 'new_email':new_email}
+        #data.update()
+        return jwt.encode(header=header, payload=data,key=key)
+
+
+    def change_email(self, token):
+        key = current_app.config['SECRET_KEY']
+        try:
+            data = jwt.decode(token, key)
+        except JoseError:
+            return False
+        if data.get('change_email') != self.id:
+            return False
+        
+        new_email = data.get('new_email')
+        if new_email is None:
+            return False
+        if self.query.filter_by(email=new_email).first() is not None:
+            return False
+        
+        self.email = new_email
+        db.session.add(self)
         return True
