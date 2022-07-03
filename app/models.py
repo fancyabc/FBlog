@@ -1,4 +1,5 @@
 
+from email.policy import default
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from authlib.jose import jwt, JoseError # 生成用于验证的token
@@ -84,6 +85,14 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     password_hash = db.Column(db.String(128))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id')) 
     confirmed = db.Column(db.Boolean, default=False) 
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        if self.role is None:
+            if self.email == current_app.config['FBlogy_ADMIN']:
+                self.role = Role.query.filter_by(name='Administrator').first()
+            if self.role is None:
+                self.role = Role.query.filter_by(default=True).first()
 
     def __repr__(self):         
         return '<User %r>' % self.username
