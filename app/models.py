@@ -173,3 +173,21 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
         self.email = new_email
         db.session.add(self)
         return True
+
+    '''检查用户是否有指定的权限'''
+    def can(self, perm):         
+        return self.role is not None and self.role.has_permission(perm)      
+            
+    def is_administrator(self):         
+        return self.can(Permission.ADMIN) 
+
+
+class AnonymousUser(AnonymousUserMixin):     
+    def can(self, permissions):         
+        return False      
+        
+    def is_administrator(self):         
+        return False 
+
+''' Flask-Login使用应用自定义的匿名用户类。'''     
+login_manager.anonymous_user = AnonymousUser
