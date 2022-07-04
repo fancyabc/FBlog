@@ -1,9 +1,7 @@
-
-from email.policy import default
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 from authlib.jose import jwt, JoseError # 生成用于验证的token
-from flask import current_app, session
+from flask import current_app
 
 from . import db
 from . import login_manager
@@ -26,10 +24,10 @@ class Permission:
 class Role(db.Model):     
     __tablename__ = 'roles'     
     id = db.Column(db.Integer, primary_key=True)     
-    name = db.Column(db.String(64), unique=True)  
-    users = db.relationship('User', backref='role', lazy='dynamic') 
+    name = db.Column(db.String(64), unique=True) 
     default = db.Column(db.Boolean, default=False, index=True) # 默认角色是注册新用户时赋予用户的角色。因为应用将在 roles 表中搜索默认角色，所以我们为这一列设置了索引，提升搜索的速度。
-    permissions = db.Column(db.Integer)
+    permissions = db.Column(db.Integer) 
+    users = db.relationship('User', backref='role', lazy='dynamic') 
     
     def __init__(self, **kwargs):
         super(Role, self).__init__(**kwargs)
@@ -37,18 +35,18 @@ class Role(db.Model):
             self.permissions = 0
     
     '''权限管理'''
-    def add_permissions(self, perm):
-        if not self.has_permissions(perm):
+    def add_permission(self, perm):
+        if not self.has_permission(perm):
             self.permissions += perm
     
-    def remove_permissions(self, perm):
-        if not self.has_permissions(perm):
+    def remove_permission(self, perm):
+        if self.has_permission(perm):
             self.permissions -= perm
 
     def reset_permissions(self):
         self.permissions = 0
 
-    def has_permissions(self, perm): # 检 查组合权限是否包含指定的单独权限
+    def has_permission(self, perm): # 检 查组合权限是否包含指定的单独权限
         return self.permissions & perm == perm
 
     '''在数据库中创建角色'''
@@ -89,7 +87,7 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
-            if self.email == current_app.config['FBlogy_ADMIN']:
+            if self.email == current_app.config['FBLOG_ADMIN']:
                 self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
