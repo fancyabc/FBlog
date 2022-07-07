@@ -65,14 +65,16 @@ def confirm(token):
     return redirect(url_for('main.index'))
 
 
-'''使用 before_app_request 处理程序过滤未确认的账户'''
+'''使用 before_app_request 处理程序过滤未确认的账户,更新已登录用户的最后访问时间'''
 @auth.before_app_request
 def before_request():
-    if current_user.is_authenticated \
-            and not current_user.confirmed \
+    if current_user.is_authenticated:
+        current_user.ping()
+        if  not current_user.confirmed \
+            and request.endpoint \
             and request.blueprint != 'auth' \
             and request.endpoint != 'static':
-        return redirect(url_for('auth.unconfirmed'))
+            return redirect(url_for('auth.unconfirmed'))
 
 
 @auth.route('/unconfirmed') 
