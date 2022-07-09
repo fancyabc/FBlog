@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime,timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
 from authlib.jose import jwt, JoseError # 生成用于验证的token
@@ -112,32 +112,43 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def generate_confirmation_token(self, **kwargs):
-        header = {'alg':'HS256'}
+    def generate_confirmation_token(self, expiration=3600):
+        header = {'typ': 'jwt','alg':'HS256'}
         key = current_app.config['SECRET_KEY']
-        data = {'confirm':self.id}
-        data.update(**kwargs)
-        return jwt.encode(header=header, payload=data,key=key)
+        data = {
+            'confirm':self.id, 
+            'iat':datetime.utcnow(),
+            }
+        if expiration:
+            data['exp'] = data['iat'] + timedelta(seconds=expiration)
+        return jwt.encode(header=header, payload=data,key=key).decode('utf-8')
         #return s.dumps({'confirm':self.id}).decode('utf-8')
 
     def confirm(self, token):
         key = current_app.config['SECRET_KEY']
         try:
             data = jwt.decode(token, key)
-        except JoseError:
+            data.validate() # 检测token
+        except JoseError:   # 捕获异常
+            print('JoseError')
             return False
         if data.get('confirm') != self.id:
+            print('data.confirm != self.id')
             return False
         self.confirmed = True
         db.session.add(self)
         return True
 
-    def generate_reset_token(self, **kwargs):
-        header = {'alg':'HS256'}
+    def generate_reset_token(self,  expiration=3600):
+        header = {'typ': 'jwt','alg':'HS256'}
         key = current_app.config['SECRET_KEY']
-        data = {'reset':self.id}
-        data.update(**kwargs)
-        return jwt.encode(header=header, payload=data,key=key)
+        data = {
+            'reset':self.id ,
+            'iat':datetime.utcnow(),
+            }
+        if expiration:
+            data['exp'] = data['iat'] + timedelta(seconds=expiration)
+        return jwt.encode(header=header, payload=data,key=key).decode('utf-8')
 
     @staticmethod
     def reset_password(token, new_password):
@@ -153,12 +164,17 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
         db.session.add(user)
         return True
 
-    def generate_change_email_token(self, new_email):
-        header = {'alg':'HS256'}
+    def generate_change_email_token(self, new_email,  expiration=3600):
+        header = {'typ': 'jwt','alg':'HS256'}
         key = current_app.config['SECRET_KEY']
-        data = {'change_email':self.id, 'new_email':new_email}
-        #data.update()
-        return jwt.encode(header=header, payload=data,key=key)
+        data = {
+            'change_email':self.id, 
+            'new_email':new_email, 
+            'iat':datetime.utcnow(),
+            }
+        if expiration:
+            data['exp'] = data['iat'] + timedelta(seconds=expiration)
+        return jwt.encode(header=header, payload=data,key=key).decode('utf-8')
 
 
     def change_email(self, token):
