@@ -3,7 +3,7 @@
 <!-- Flask-Bootstrap 扩展提供了一个高层级的辅助函数，可以使用 Bootstrap 预定义的表单样式渲染整个 Flask-WTF 表单，而这些操作只需一次调用即可完成。 -->
 {% import "bootstrap/wtf.html" as wtf %} 
 
-{% block title %}Flasky{% endblock %}
+{% block title %}FBlog{% endblock %}
 
 {% block page_content %} 
   
@@ -17,16 +17,16 @@
     </h1>     
 </div> 
 <div>     
-    {% if current_user.can(Permission.WRITE) %}     
-    {{ wtf.quick_form(form) }}     
-    {% endif %} 
+{% if current_user.can(Permission.WRITE) %}     
+{{ wtf.quick_form(form) }}     
+{% endif %} 
 </div> 
 <ul class="posts">     
     {% for post in posts %}     
     <li class="post">         
         <div class="profile-thumbnail">             
             <a href="{{ url_for('.user', username=post.author.username) }}">                 
-                <img class="img-rounded profile-thumbnail"  src="{{ post.author.gravatar(size=40) }}"> 
+                <img class="img-rounded profile-thumbnail"  src="{{ url_for('main.get_avatar', filename=post.author.avatar_s) }}"> 
             </a>         
         </div>         
         <div class="post-date">{{ moment(post.timestamp).fromNow() }}</div>         

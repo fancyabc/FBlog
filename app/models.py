@@ -106,12 +106,12 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        self.generate_avatar()
         if self.role is None:
             if self.email == current_app.config['FBLOG_ADMIN']:
                 self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+        self.generate_avatar()
 
     def __repr__(self):         
         return '<User %r>' % self.username

@@ -3,7 +3,7 @@
     <li class="post">
         <div class="post-thumbnail">
             <a href="{{ url_for('.user', username=post.author.username) }}">
-                <img class="img-rounded profile-thumbnail" src="{{ post.author.gravatar(size=40) }}">
+                <img class="img-rounded profile-thumbnail"  src="{{ url_for('main.get_avatar', filename=post.author.avatar_s) }}">
             </a>
         </div>
         <div class="post-content">

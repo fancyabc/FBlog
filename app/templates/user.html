@@ -7,7 +7,7 @@
 <div class="container">     
     <div class="row container"> 
         <div class="col col-3">
-            <img class="img-rounded profile-thumbnail" src="{{ url_for('main.get_avatar', filename=current_user.avatar_m) }}">  
+            <img class="img-rounded profile-thumbnail" src="{{ url_for('main.get_avatar',  filename=current_user.avatar_l) }}">  
             {% if user == current_user %} {# 判断用户是不是当前用户 #}
                 <br><a style="margin-top: 10px" href="{{ url_for('main.upload') }}" class="btn btn-primary">更改头像 <span class="fa fa-edit"></span></a>
             {% endif %}       
