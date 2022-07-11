@@ -16,6 +16,11 @@
                     {{ post.body }}
                 {% endif %}
             </div>
+            <div class="post-footer"> <!-- 文章的固定链接 -->
+                <a href="{{ url_for('.post', id=post.id) }}">                     
+                    <span class="label label-default">Permalink</span>                 
+                </a>
+            </div>
         </div>
     </li>
     {% endfor %}
