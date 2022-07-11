@@ -1,4 +1,4 @@
-from flask import redirect, render_template,flash, request, session,url_for, send_from_directory,current_app
+from flask import abort, redirect, render_template,flash, request, session,url_for, send_from_directory,current_app
 from flask_login import login_required, current_user
 
 from . import main
@@ -20,8 +20,11 @@ def index():
 
 @main.route('/user/<username>') 
 def user(username):     
-    user = User.query.filter_by(username=username).first_or_404()     
-    return render_template('user.html', user=user)
+    user = User.query.filter_by(username=username).first()   
+    if user is None:
+        abort(404)
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('user.html',user=user, posts=posts)
 
 '''server the image'''
 @main.route('/avatars/<path:filename>')
