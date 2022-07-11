@@ -1,10 +1,10 @@
-from flask import redirect, render_template,flash,url_for
+from flask import redirect, render_template,flash, request, session,url_for, send_from_directory,current_app
 from flask_login import login_required, current_user
 
 from . import main
 from ..models import User, Role
 from .forms import EditProfileForm, EditProfileAdminForm
-from .. import db
+from .. import db, avatars
 from ..decorators import admin_required
 
 @main.route('/')
@@ -15,6 +15,45 @@ def index():
 def user(username):     
     user = User.query.filter_by(username=username).first_or_404()     
     return render_template('user.html', user=user)
+
+'''server the image'''
+@main.route('/avatars/<path:filename>')
+def get_avatar(filename):
+    return send_from_directory(current_app.config['AVATARS_SAVE_PATH'], filename)
+
+
+@main.route('/change-avatar/', methods=['GET', 'POST'])
+@login_required
+def upload():
+    if request.method == 'POST':
+        f = request.files.get('file')
+        raw_filename = avatars.save_avatar(f)
+        u = current_user._get_current_object()
+        u.avatar_raw = raw_filename
+        db.session.add(u)
+        db.session.commit()
+        return redirect(url_for('main.crop'))
+    return render_template('change-avatar-upload.html')
+
+
+@main.route('/change-avatar/crop/', methods=['GET', 'POST'])
+@login_required
+def crop():
+    if request.method == 'POST':
+        x = request.form.get('x')
+        y = request.form.get('y')
+        w = request.form.get('w')
+        h = request.form.get('h')
+        filenames = avatars.crop_avatar(current_user.avatar_raw, x, y, w, h)
+        u = current_user._get_current_object()
+        u.avatar_s = filenames[0]
+        u.avatar_m = filenames[1]
+        u.avatar_l = filenames[2]
+        db.session.add(u)
+        db.session.commit()
+        flash('更改头像成功', 'success')
+        return redirect(url_for('main.user', username=u.username))
+    return render_template('change-avatar-crop.html')
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField,BooleanField,SelectField
+from wtforms import StringField, SubmitField, TextAreaField,BooleanField,SelectField,HiddenField
 from wtforms.validators import DataRequired,Length, Regexp,Email
 from wtforms import ValidationError
 from ..models import User, Role
@@ -45,3 +45,11 @@ class EditProfileAdminForm(FlaskForm):
     def validate_username(self, field):
         if field.data != self.user.username and User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already in user.')
+
+
+class CropAvatarForm(FlaskForm):
+    x = HiddenField()
+    y = HiddenField()
+    w = HiddenField()
+    h = HiddenField()
+    submit = SubmitField('Crop and Update')

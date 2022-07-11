@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
 from authlib.jose import jwt, JoseError # 生成用于验证的token
 from flask import current_app
+from flask_avatars import Identicon
 
 from . import db
 from . import login_manager
@@ -89,9 +90,14 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     about_me = db.Column(db.Text())     
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)     
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow) 
+    avatar_s = db.Column(db.String(64))
+    avatar_m = db.Column(db.String(64))
+    avatar_l = db.Column(db.String(64))
+    avatar_raw = db.Column(db.String(64))
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
+        self.generate_avatar()
         if self.role is None:
             if self.email == current_app.config['FBLOG_ADMIN']:
                 self.role = Role.query.filter_by(name='Administrator').first()
@@ -155,6 +161,7 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
         key = current_app.config['SECRET_KEY']
         try:
             data = jwt.decode(token, key)
+            data.validate() # 检测token
         except JoseError:
             return False
         user = User.query.get(data.get('reset'))
@@ -181,6 +188,7 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
         key = current_app.config['SECRET_KEY']
         try:
             data = jwt.decode(token, key)
+            data.validate() # 检测token
         except JoseError:
             return False
         if data.get('change_email') != self.id:
@@ -208,8 +216,17 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
         db.session.add(self)         
         db.session.commit()
 
+    def generate_avatar(self):
+        avatar = Identicon()
+        filenames = avatar.generate(text=self.username)
+        self.avatar_s = filenames[0]
+        self.avatar_m = filenames[1]
+        self.avatar_l = filenames[2]
+        #db.session.add(self)
+        db.session.commit()
 
-class AnonymousUser(AnonymousUserMixin):     
+
+class AnonymousUser(AnonymousUserMixin):  
     def can(self, permissions):         
         return False      
         

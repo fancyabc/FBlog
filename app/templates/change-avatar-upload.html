@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}上传头像 - FBlog{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>上传头像</h1>
+        <hr>
+        <form method="post" enctype="multipart/form-data">
+            <div class="input-group">
+                <input id='location' class="form-control" onclick="$('#file').click();">
+                <label class="input-group-prepend">
+                    <input type="button" value="上传头像" id="i-check" class="btn btn-primary rounded-right"
+                            onclick="$('#file').click();">
+                </label>
+            </div>
+            <input type="file" name="file" id='file' accept="image/png image/jpg image/jpeg image/gif"
+                   onchange="$('#location').val(getFileName(this.value));" style="display: none">
+            <button class="btn btn-success" type="submit">上传</button>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function getFileName(path) {
+            var pos1 = path.lastIndexOf('/');
+            var pos2 = path.lastIndexOf('\\');
+            var pos = Math.max(pos1, pos2);
+            if (pos < 0)
+                return path;
+            else
+                return path.substring(pos + 1);
+        }
+    </script>
+{% endblock %}
