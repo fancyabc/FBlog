@@ -2,6 +2,7 @@
 {% extends "base.html" %} 
 <!-- Flask-Bootstrap 扩展提供了一个高层级的辅助函数，可以使用 Bootstrap 预定义的表单样式渲染整个 Flask-WTF 表单，而这些操作只需一次调用即可完成。 -->
 {% import "bootstrap/wtf.html" as wtf %} 
+{% import "_macros.html" as macros %}
 
 {% block title %}FBlog{% endblock %}
 
@@ -20,23 +21,10 @@
 {% if current_user.can(Permission.WRITE) %}     
 {{ wtf.quick_form(form) }}     
 {% endif %} 
+
 </div> 
-<ul class="posts">     
-    {% for post in posts %}     
-    <li class="post">         
-        <div class="profile-thumbnail">             
-            <a href="{{ url_for('.user', username=post.author.username) }}">                 
-                <img class="img-rounded profile-thumbnail"  src="{{ url_for('main.get_avatar', filename=post.author.avatar_s) }}"> 
-            </a>         
-        </div>         
-        <div class="post-date">{{ moment(post.timestamp).fromNow() }}</div>         
-        <div class="post-author">            
-            <a href="{{ url_for('.user', username=post.author.username) }}">                
-                {{ post.author.username }}            
-            </a>         
-        </div>
-        <div class="post-body">{{ post.body }}</div>      
-    </li>     
-    {% endfor %} 
-</ul>
+{% include '_posts.html' %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.index') }}
+</div>
 {% endblock %}
