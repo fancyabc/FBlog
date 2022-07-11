@@ -27,4 +27,9 @@
 <div class="pagination">
     {{ macros.pagination_widget(pagination, '.index') }}
 </div>
+{% block scripts %} <!--Flask-PageDown模板声明-->
+{{ super() }} 
+{{ pagedown.include_pagedown() }} 
+{% endblock %}
+
 {% endblock %}

@@ -8,6 +8,7 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_avatars import Avatars
+from flask_pagedown import PageDown
 
 from config import config
 
@@ -19,6 +20,7 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login' # LoginManager 对象的 login_view 属性用于设置登录页面的端点。
 avatars = Avatars()
+pagedown = PageDown()
 
 """create_app() 函数是应用的工厂函数，接受一个参数，是应用使用的配置名。"""
 def create_app(config_name):
@@ -32,6 +34,7 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     avatars.init_app(app)
+    pagedown.init_app(app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
