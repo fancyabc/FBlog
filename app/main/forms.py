@@ -46,10 +46,7 @@ class EditProfileAdminForm(FlaskForm):
         if field.data != self.user.username and User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already in user.')
 
-
-class CropAvatarForm(FlaskForm):
-    x = HiddenField()
-    y = HiddenField()
-    w = HiddenField()
-    h = HiddenField()
-    submit = SubmitField('Crop and Update')
+'''博客文章表单'''
+class PostForm(FlaskForm):     
+    body = TextAreaField("What's on your mind?", validators=[DataRequired()])     
+    submit = SubmitField('Submit')

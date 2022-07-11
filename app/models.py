@@ -76,6 +76,14 @@ class Role(db.Model):
     def __repr__(self):         
         return '<Role %r>' % self.name  
         
+
+class Post(db.Model):     
+    __tablename__ = 'posts'     
+    id = db.Column(db.Integer, primary_key=True)     
+    body = db.Column(db.Text)     
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)     
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id')) 
+
         
 class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     __tablename__ = 'users'     
@@ -94,6 +102,7 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     avatar_m = db.Column(db.String(64))
     avatar_l = db.Column(db.String(64))
     avatar_raw = db.Column(db.String(64))
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
