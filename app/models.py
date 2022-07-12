@@ -288,6 +288,11 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
             return False         
         return self.followers.filter_by(follower_id=user.id).first() is not None
 
+    '''获取所关注用户的文章'''
+    @property
+    def followed_posts(self):         
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
+
 
 class AnonymousUser(AnonymousUserMixin):  
     def can(self, permissions):         
