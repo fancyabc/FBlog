@@ -3,3 +3,5 @@
 .flaskenv
 config.py
 data-dev.sqlite
+uploads/*
+__pyache__/*
