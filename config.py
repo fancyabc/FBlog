@@ -14,6 +14,7 @@ class Config:
     FBLOG_MAIL_SENDER = '12121@qq.com'     
     FBLOG_ADMIN = os.environ.get('FBLOG_ADMIN')     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    FLASKY_POSTS_PER_PAGE = 20
 
     UPLOAD_PATH = os.path.join(basedir, 'uploads')
     AVATARS_SAVE_PATH = os.path.join(UPLOAD_PATH, 'avatars')
