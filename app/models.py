@@ -100,6 +100,15 @@ class Post(db.Model):
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
 
+'''为了能在关系中处理自定义的数据，我们必须提升关联表的地位，使其变成应用可访问的模型。
+SQLAlchemy不能直接使用这个关联表，因为如果这么做应用就无法访问其中的自定义字段。相反地，
+要把这个多对多关系的左右两侧拆分成两个基本的一对多关系，而且要定义成标准的关系'''
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)     
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),primary_key=True)     
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
         
 class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     __tablename__ = 'users'     
@@ -119,6 +128,15 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     avatar_l = db.Column(db.String(64))
     avatar_raw = db.Column(db.String(64))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    followed = db.relationship('Follow', foreign_keys=[Follow.follower_id],
+                                backref=db.backref('follower', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')     
+    followers = db.relationship('Follow',
+                                foreign_keys=[Follow.followed_id],
+                                backref=db.backref('followed', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -249,6 +267,26 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
         self.avatar_l = filenames[2]
         #db.session.add(self)
         db.session.commit()
+
+    def follow(self, user):         
+        if not self.is_following(user):             
+            f = Follow(follower=self, followed=user)             
+            db.session.add(f)      
+            
+    def unfollow(self, user):         
+        f = self.followed.filter_by(followed_id=user.id).first()         
+        if f:             
+            db.session.delete(f)     
+            
+    def is_following(self, user):         
+        if user.id is None:             
+            return False         
+        return self.followed.filter_by(followed_id=user.id).first() is not None      
+        
+    def is_followed_by(self, user):         
+        if user.id is None:             
+            return False         
+        return self.followers.filter_by(follower_id=user.id).first() is not None
 
 
 class AnonymousUser(AnonymousUserMixin):  
