@@ -8,13 +8,14 @@ class Config:
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.qq.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', '465'))
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'True')
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME','2211@qq.com')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'pass')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME','@qq.com')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
     FBLOG_MAIL_SUBJECT_PREFIX = '[FBlog]'     
-    FBLOG_MAIL_SENDER = '12121@qq.com'     
+    FBLOG_MAIL_SENDER = MAIL_USERNAME     
     FBLOG_ADMIN = os.environ.get('FBLOG_ADMIN')     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    FLASKY_POSTS_PER_PAGE = 20
+    FBLOG_POSTS_PER_PAGE = 20
+    FBLOG_FOLLOWERS_PER_PAGE = 10
 
     UPLOAD_PATH = os.path.join(basedir, 'uploads')
     AVATARS_SAVE_PATH = os.path.join(UPLOAD_PATH, 'avatars')

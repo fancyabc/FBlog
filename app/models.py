@@ -146,6 +146,7 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
         self.generate_avatar()
+        self.follow(self)
 
     def __repr__(self):         
         return '<User %r>' % self.username
@@ -292,6 +293,15 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
     @property
     def followed_posts(self):         
         return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
+
+    '''把用户设为自己的关注者'''
+    @staticmethod     
+    def add_self_follows():        
+        for user in User.query.all():             
+            if not user.is_following(user):                 
+                user.follow(user)                 
+                db.session.add(user)                 
+                db.session.commit()
 
 
 class AnonymousUser(AnonymousUserMixin):  
