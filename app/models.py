@@ -10,10 +10,6 @@ import bleach
 from . import db
 from . import login_manager
 
-'''加载用户的函数'''
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 
 '''应用中的各项权限'''
@@ -86,6 +82,7 @@ class Post(db.Model):
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)     
     author_id = db.Column(db.Integer, db.ForeignKey('users.id')) 
+    comments = db.relationship('Comment', backref='post', lazy='dynamic')
 
     '''在Post模型中处理Markdown文本'''
     @staticmethod     
@@ -99,6 +96,29 @@ class Post(db.Model):
 
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
+
+
+class Comment(db.Model):     
+    __tablename__ = 'comments'     
+    id = db.Column(db.Integer, primary_key=True)     
+    body = db.Column(db.Text)   
+    body_html = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    disabled = db.Column(db.Boolean)     # 协管员通过这个字段查禁不当评论
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+
+    '''在Comment模型中处理Markdown文本'''
+    @staticmethod     
+    def on_changed_body(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
+                        'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
+                        'h1', 'h2', 'h3', 'p']
+        target.body_html = bleach.linkify(bleach.clean(
+            markdown(value, output_format='html'),
+            tags=allowed_tags, strip=True))
+
+db.event.listen(Comment.body, 'set', Comment.on_changed_body)
 
 '''为了能在关系中处理自定义的数据，我们必须提升关联表的地位，使其变成应用可访问的模型。
 SQLAlchemy不能直接使用这个关联表，因为如果这么做应用就无法访问其中的自定义字段。相反地，
@@ -137,6 +157,7 @@ class User(UserMixin, db.Model):     # 修改 User 模型，支持用户登录
                                 backref=db.backref('followed', lazy='joined'),
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -313,3 +334,9 @@ class AnonymousUser(AnonymousUserMixin):
 
 ''' Flask-Login使用应用自定义的匿名用户类。'''     
 login_manager.anonymous_user = AnonymousUser
+
+
+'''加载用户的函数'''
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
