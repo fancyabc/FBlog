@@ -1,13 +1,14 @@
 <!-- 包含导航栏的应用基础模板 -->
 {% extends "bootstrap/base.html" %}  
 
-{% block title %}Flasky{% endblock %}  
+{% block title %}FBlog{% endblock %}  
 
 <!-- 在基模版中引入favicon.ico，定义收藏夹图标 -->>
 {% block head %}
 {{ super() }}
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 {% endblock %}
 
 {% block navbar %} 
@@ -25,8 +26,7 @@
         <div class="navbar-collapse collapse">             
             <ul class="nav navbar-nav">                 
                 <li><a href="/">Home</a></li>             
-            </ul>         
-        </div>              
+            </ul> 
             <ul class="nav navbar-nav navbar-right">      
                 {% if current_user.is_authenticated %}
                 <li>     
@@ -43,7 +43,8 @@
                 {% else %}
                     <li><a href="{{ url_for('auth.login') }}">Log In</a></li>            
                 {% endif %}
-            </ul>         
+            </ul>        
+        </div>                       
     </div> 
 </div> 
 {% endblock %}  

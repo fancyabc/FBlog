@@ -7,7 +7,7 @@
 <div class="container">     
     <div class="row container"> 
         <div class="col col-3">
-            <img class="img-rounded profile-thumbnail" src="{{ url_for('main.get_avatar',  filename=current_user.avatar_l) }}">  
+            <img class="img-rounded img-fluid" src="{{ url_for('main.get_avatar',  filename=user.avatar_l) }}">  
             {% if user == current_user %} {# 判断用户是不是当前用户 #}
                 <br><a style="margin-top: 10px" href="{{ url_for('main.upload') }}" class="btn btn-primary">更改头像 <span class="fa fa-edit"></span></a>
             {% endif %}       
@@ -16,7 +16,7 @@
             <h1>{{ user.username }}</h1>     
             {% if user.name or user.location %}     
             <p>         
-                {% if user.name %}{{ user.name }}{% endif %}         
+                {% if user.name %}<small><small><small class="text-muted font-weight-light"></small>{{ user.name }}</small></small></small>{% endif %}         
                 {% if user.location %}             
                     From <a href="http://baidu.com/?q={{ user.location }}">                 
                         {{ user.location }}             
@@ -43,13 +43,13 @@
                     <a href="{{ url_for('.unfollow', username=user.username) }}" class="btn btn-default">Unfollow</a>     
                     {% endif %} 
                 {% endif %} 
-                <a href="{{ url_for('.followers', username=user.username) }}"> 
-                    Followers: <span class="badge">{{ user.followers.count() -1 }}</span> 
+                <a href="{{ url_for('.followers', username=user.username) }}">Followers: 
+                    <span class="badge">{{ user.followers.count() }}</span> 
                 </a> 
-                <a href="{{ url_for('.followed_by', username=user.username) }}"> 
-                    Following: <span class="badge">{{ user.followed.count() -1 }}</span> 
+                <a href="{{ url_for('.followed_by', username=user.username) }}">Following: 
+                    <span class="badge">{{ user.followed.count() }}</span> 
                 </a> 
-                {% if current_user.is_authenticated and user != current_user and user.is_following(current_user) %} 
+                {% if current_user.is_authenticated and user != current_user and user.is_following(current_user) %}
                     <span class="label label-default">Follows you</span> 
                 {% endif %}
             </p>
