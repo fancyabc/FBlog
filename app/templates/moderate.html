@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}FBlog -Comment Moderation{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Comment Moderation</h1>
+</div>
+{% set moderate = True %}
+{% include '_comments.html' %} <!-- 渲染评论的工作交给_comments.html模板完成 -->
+{% if pagination %}
+<div class="pigination">
+    {{ macros.pagination_widget(pagination, '.moderate') }}
+</div>
+{% endif %}
+{% endblock %}
