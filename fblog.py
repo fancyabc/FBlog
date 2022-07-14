@@ -10,7 +10,7 @@ if os.environ.get('FBLOG_COVERAGE'):
 
 from app import create_app, db
 from app.models import User, Role, Follow, Permission, Post, Comment
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
 
 '''先创建一个应用实例。如果已经定义了环境变量 FLASK_CONFIG，则从中读取配置名；
 否则使用默认配置。然后初始化 Flask-Migrate 和为 Python shell 定义的上下文。'''
@@ -60,6 +60,19 @@ def profile(length, profile_dir):
     from werkzeug.middleware.profiler import ProfilerMiddleware     
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[length],profile_dir=profile_dir)     
     app.run(debug=False)
+
+
+'''创建或更新数据库表。'''
+@app.cli.command()
+def deploy():     
+    """Run deployment tasks."""     
+    # 把数据库迁移到最新修订版本     
+    upgrade()      
+    # 创建或更新用户角色     
+    Role.insert_roles()      
+    # 确保所有用户都关注了他们自己     
+    User.add_self_follows()
+
 
 if __name__ == "__main__":
     app.cli()
