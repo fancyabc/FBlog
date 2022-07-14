@@ -42,4 +42,7 @@ def create_app(config_name):
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
+    from .api import api as api_blueprint
+    app.register_blueprint(api_blueprint, url_prefix='/api/v1') # 注册蓝本时设置前缀是个好主意，这样就无须在蓝本的每个路由中硬编码版本号了
+
     return app
