@@ -23,6 +23,9 @@ class Config:
     AVATARS_SIZE_TUPLE = (30, 100, 200)
     AVATARS_SERVE_LOCAL = True
 
+    SQLALCHEMY_RECORD_QUERIES = True # 启用缓慢查询记录功能的配置
+    FBLOG_SLOW_DB_QUERY_TIME = 0.5
+
     @staticmethod
     def init_app(app):
         pass
